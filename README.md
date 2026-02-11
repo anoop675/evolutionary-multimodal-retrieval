@@ -179,6 +179,6 @@ Planned extensions:
 - Few-shot novel class embedding insertion
 - Graph neural networks over embedding neighbourhoods
 - Compare against CLIP text encoder representations
-- Instead of manually inserting the CIFAR-100 label embeddings in the text (Skip-Gram) embedding space using EA, try to achieve the system to predict new (CIFAR-100 labels) embeddings and position them semantically in the text embedding space (refer to VL-JEPA - it semantically predicts new embeddings in the embedding space level). Reference: [https://doi.org/10.48550/arXiv.2512.10942][https://doi.org/10.48550/arXiv.2512.10942]
+- Instead of manually inserting the CIFAR-100 label embeddings in the text (Skip-Gram) embedding space using EA, try to achieve the system to predict new (CIFAR-100 labels) embeddings and position them semantically in the text embedding space (refer to VL-JEPA - it semantically predicts new embeddings in the embedding space level). Reference: [https://doi.org/10.48550/arXiv.2512.10942]
 
 ---
