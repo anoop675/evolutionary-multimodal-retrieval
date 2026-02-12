@@ -1,4 +1,4 @@
-# Supervised Constrastive Vision–Language Alignment Model with Evolutionary Semantic Language Expansion (CLIP-Style CIFAR-100)
+# Supervised Constrastive Vision–Language Alignment and Retrieval Model with Evolutionary Semantic Language Expansion (CLIP-Style CIFAR-100)
 
 Built a lightweight image–text alignment and retrieval model for CIFAR-100 by training Skip-gram word embeddings from a co-occurrence network built on Visual Genome to semantically capture visually-grounded object scene descriptions.
 Demonstrated stable cross-domain embedding transfer learning by expanding the text embedding space using (1+λ) evolutionary algorithm, coherently integrating CIFAR-100 class labels for alignment with image embeddings while preserving the learned semantic relationships - without retraining the entire latent space.
