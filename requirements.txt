@@ -1,0 +1,11 @@
+torch>=2.0
+torchvision>=0.15
+numpy
+networkx
+matplotlib
+seaborn
+scikit-learn
+pillow
+requests
+tqdm
+neo4j>=5.0

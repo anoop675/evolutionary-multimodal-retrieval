@@ -1,0 +1,19 @@
+# Local Neo4j for storing the Visual Genome co-occurrence graph (see graph_store.py).
+# Start:  export NEO4J_PASSWORD=<choose one, 8+ chars>  &&  docker compose up -d
+# Browse: http://localhost:7474  (user: neo4j)
+services:
+  neo4j:
+    image: neo4j:5.26
+    container_name: evo-retrieval-neo4j
+    ports:
+      - "7474:7474"   # Neo4j Browser (web UI)
+      - "7687:7687"   # Bolt protocol, used by the Python driver
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?Set NEO4J_PASSWORD before starting}  # refuse to start without a password
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512M
+    volumes:
+      - neo4j_data:/data   # graph survives container restarts
+
+volumes:
+  neo4j_data:

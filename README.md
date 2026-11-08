@@ -135,6 +135,21 @@ The projection head learns to **adapt image features into a fixed, semantically 
 
 ---
 
+## Neo4j Graph Storage
+
+The co-occurrence graph can be stored in Neo4j ([graph_store.py](graph_store.py)) instead of being rebuilt from the Visual Genome text on every run. Neo4j keeps the permanent copy; training still runs on an in-memory NetworkX copy loaded from it, so the trained checkpoints stay valid and nothing needs retraining.
+
+```bash
+pip install -r requirements.txt
+export NEO4J_PASSWORD=<choose one, 8+ chars>
+docker compose up -d          # Neo4j Browser at http://localhost:7474
+python graph_store.py         # unit tests (Neo4j tests run when NEO4J_PASSWORD is set)
+```
+
+In the notebook, Stage 1 uses Neo4j when `NEO4J_PASSWORD` is set: it builds and saves the graph the first time, then loads it from Neo4j. Without `NEO4J_PASSWORD` it builds the graph in memory exactly as before. Stage 2 checks that the stored vocabulary is in the same order as the Skip-gram checkpoint's embedding rows, and Stage 2b lists hub words and how much of the vocabulary each word's Skip-gram context covers.
+
+---
+
 ## Evaluation & Results
 
 Evaluation is retrieval-based, not classification-based.
