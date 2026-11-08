@@ -37,7 +37,7 @@ The result is a **structured multimodal embedding space** that is:
 - semantically interpretable  
 - robust across classes and unseen examples
 
-   Nuance: The Skip-Gram model learns semantic relationships from Visual Genome co-occurrence data, and an evolutionary anchor-insertion process integrates CIFAR-100 class labels into this space. The projection head is then trained to align CNN image embeddings to these semantically-enriched word representations, enabling the model to map images into a concept space shaped by real-world visual context.
+   Nuance: The Skip-Gram model learns semantic relationships from Visual Genome co-occurrence data, and an evolutionary anchor-insertion process integrates CIFAR-100 class labels into this space. The projection head is then trained to align CNN image embeddings to these semantically-enriched word representations, enabling the model to map images into a concept space shaped by how real-world scenes are described.
 
 ---
 
@@ -45,17 +45,24 @@ The result is a **structured multimodal embedding space** that is:
 
 ### Text Embedding Backbone — Skip-Gram over Visual Genome
 
-Built a semantic text backbone by training Skip-Gram word embeddings on a co-occurrence network constructed from Visual Genome regional descriptions, ensuring that word relationships reflect visually grounded object interactions rather than purely linguistic similarity.
+Built a semantic text backbone by training Skip-Gram word embeddings on a word co-occurrence graph constructed from Visual Genome region descriptions — 5.4M short sentences that people wrote about regions of real images (e.g. *"a white car parked on the street"*).
 
-- Constructed a co-occurrence graph from region descriptions.
-- Learned embeddings using a custom Skip-Gram text model.
-- Captured spatial & contextual object relationships (e.g., car-road, tree-forest, table-chair)
-- This provided a visually grounded semantic embedding space rather than a generic language model vocabulary.
+- Constructed a co-occurrence graph from region descriptions: each word is a node, and two words are linked when they appear **directly next to each other** in a description (455 words, 48,764 weighted links).
+- Learned 64-dimensional embeddings using a custom Skip-Gram model with negative sampling.
+- Words that are **described in similar ways** end up with similar vectors (e.g. cat–dog 0.92, car–truck 0.90, table–chair 0.86 cosine similarity).
+- This gives an embedding space built only from descriptions of images, rather than a generic language-model vocabulary trained on books or web text.
 
-The resulting vocabulary reflects **how objects co-occur in real scenes**, rather than purely linguistic usage.
+#### What the graph represents
 
-Rationale for the need of co-occurence network:
-The co-occurrence graph was used instead of training Skip-Gram directly on the raw text corpus because it provides a structured, globally consistent representation of how objects appear together in the visual world. Rather than relying only on local sentence windows, the graph aggregates co-occurrence statistics across all Visual Genome region descriptions, forming a weighted network where nodes represent object concepts and edges encode the strength of their visual relationships. This produces a smoother and more semantically meaningful topology — grouping objects such as apple–orange–pear or lizard–snake–crocodile according to shared context — which aligns more closely with image features than purely linguistic similarity. The graph also makes neighbourhood structure explicit, enabling us to evaluate, preserve, and optimise semantic clusters during evolutionary anchor insertion. This is crucial for robust alignment in our contrastive learning stage, as the resulting text embedding space is not only linguistically coherent, but also visually grounded and structurally stable for zero-shot retrieval and generalisation.
+The graph represents **how scenes are described in language**: which words people use together when describing what they see.
+
+For example, *"a white car parked on the street"* adds the links `white–car`, `car–parked`, `parked–on` and `the–street`. Summed over all 5.4M descriptions, each word's links and their counts form a profile of how that word is used to describe visual scenes.
+
+Skip-Gram turns these profiles into vectors, so words with **similar profiles** become close in the embedding space, even if they rarely appear side by side. `cat` and `dog`, for instance, are both described as "sitting", "laying" and "brown", so their vectors are close (0.92 cosine similarity). This is **distributional semantics** ("words used in similar ways have similar meanings") learned from visual scene descriptions.
+
+This suits the retrieval task: an image is matched to the class label whose vector is closest, so semantically similar labels sit near each other and near-misses stay meaningful.
+
+**Why a graph instead of training Skip-Gram on the raw sentences:** the graph adds up neighbour counts across all 5.4M descriptions into one weighted network. That makes each word's neighbourhood explicit and easy to inspect (for example with the Neo4j queries in [graph_store.py](graph_store.py)), and lets Skip-Gram weight frequent pairs more heavily.
 
 ---
 
@@ -190,6 +197,8 @@ Planned extensions:
 - Zero-shot learning with relational prompts (vanilla CLIP-style)
   - Implement Inductive Zero-Shot Learning (IZSL) - Train on seen classes, test on completely unseen classes at inference (no access to unseen class data during training)
   - Implement Transductive Zero-Shot Learning (TZSL) - Train on seen classes, but have access to unlabeled images from unseen classes during training
+- Extend the graph with scene-level structure in Neo4j: link objects that appear in the same image (Visual Genome `objects.json`) and add typed relations such as `car —on→ road` (`relationships.json`) alongside the existing word links. These can be stored and queried without retraining, then used to retrain the embeddings on the combined graph (Skip-Gram) or to learn the typed relations with knowledge-graph embeddings (e.g. TransE)
+- Tune the Skip-Gram context size and filter high-frequency function words from the graph
 - Joint training of both modalities
 - Few-shot novel class embedding insertion
 - Graph neural networks over embedding neighbourhoods
